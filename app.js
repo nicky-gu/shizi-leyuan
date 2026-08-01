@@ -122,6 +122,7 @@ function renderHome() {
 
   el.innerHTML = `
     <div class="card hero">
+      <div class="mascot">${mascotSVG("idle")}</div>
       <h1>🪖 三角洲识字特训营</h1>
       <p>20 天攻克二年级上册 ${DATA.total} 个生字</p>
       <div class="day-badge">🪖 入营第 ${day} 天 ${elapsed >= 20 ? "（特训已完成）" : ""}</div>
@@ -465,6 +466,7 @@ function finishGame() {
   else { emoji = "🌱💪"; msg = "别急！未掌握的字会反复出现帮你记住它！"; }
 
   document.getElementById("celebrateContent").innerHTML = `
+    <div class="mascot mascot-celebrate">${mascotSVG("slash")}</div>
     <div class="emoji-rain">${emoji}</div>
     <h2>${msg}</h2>
     <p>本轮 ${total} 题 · 命中 ${G.right} · 命中率 ${acc}%</p>
@@ -522,6 +524,50 @@ function renderStats() {
     </div>` : `
     <div class="card empty-state"><div class="icon">🏆</div><p>太强了！目前零失误！</p></div>`}
   `;
+}
+
+/* ---------- 吉祥物：威龙·宇航员皮肤 + 线条刀（卡通化） ---------- */
+function mascotSVG(action) {
+  const cls = action === "slash" ? "mascot-svg slash" : "mascot-svg";
+  return `
+  <svg class="${cls}" viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="威龙宇航员吉祥物">
+    <g class="sparkles">
+      <text x="26" y="46" font-size="18" fill="#E0A526">✦</text>
+      <text x="186" y="64" font-size="13" fill="#C75B39">✦</text>
+      <text x="44" y="210" font-size="11" fill="#3F6B4F">✦</text>
+    </g>
+    <!-- 生命维持背包 -->
+    <rect x="66" y="118" width="88" height="80" rx="18" fill="#3F6B4F" stroke="#2C2A24" stroke-width="3"/>
+    <rect x="80" y="130" width="60" height="18" rx="9" fill="#E0A526"/>
+    <!-- 身体太空服 -->
+    <rect x="62" y="126" width="96" height="96" rx="24" fill="#F1EFE0" stroke="#C75B39" stroke-width="5"/>
+    <!-- 胸前徽章 -->
+    <circle cx="110" cy="170" r="17" fill="#C75B39"/>
+    <path d="M110 159 l4.5 9 10 0 -8 7 3 10 -9.5 -6 -9.5 6 3 -10 -8 -7 10 0 z" fill="#E0A526"/>
+    <!-- 腿 -->
+    <rect x="80" y="214" width="23" height="34" rx="11" fill="#F1EFE0" stroke="#C75B39" stroke-width="4"/>
+    <rect x="117" y="214" width="23" height="34" rx="11" fill="#F1EFE0" stroke="#C75B39" stroke-width="4"/>
+    <!-- 头盔外壳 -->
+    <circle cx="110" cy="78" r="50" fill="#C75B39"/>
+    <circle cx="110" cy="78" r="43" fill="#F1EFE0"/>
+    <!-- 面罩 -->
+    <path d="M75 70 a35 35 0 0 1 70 0 a35 29 0 0 1 -70 0 z" fill="#2E6396"/>
+    <ellipse cx="93" cy="59" rx="15" ry="9" fill="#a9cbe8" opacity=".85"/>
+    <circle cx="120" cy="75" r="4.5" fill="#E0A526"/>
+    <!-- 天线 -->
+    <line x1="110" y1="28" x2="110" y2="13" stroke="#C75B39" stroke-width="4"/>
+    <circle cx="110" cy="11" r="5" fill="#E0A526"/>
+    <!-- 手臂 + 线条刀 -->
+    <g class="arm">
+      <rect x="146" y="138" width="46" height="16" rx="8" fill="#F1EFE0" stroke="#C75B39" stroke-width="4"/>
+      <rect x="184" y="98" width="11" height="46" rx="5" fill="#2C2A24"/>
+      <rect x="186" y="102" width="7" height="38" rx="3" fill="#566A7D"/>
+      <rect x="178" y="138" width="24" height="8" rx="4" fill="#E0A526"/>
+      <path d="M189 98 L202 28 L183 94 Z" fill="#d7dde3" stroke="#fff" stroke-width="1.5"/>
+      <!-- 刀光 -->
+      <path class="slash-fx" d="M150 58 Q205 18 232 78" fill="none" stroke="#E0A526" stroke-width="6" stroke-linecap="round" opacity="0"/>
+    </g>
+  </svg>`;
 }
 
 /* ---------- 启动 ---------- */
