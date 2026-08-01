@@ -126,6 +126,7 @@ function openSyncModal() {
         <button class="btn btn-yellow" onclick="copyCode('${existing.code}')">📋 复制同步码</button>
       </div>
       <p class="tip" id="syncMsg" style="margin-top:12px">上次同步: ${existing.lastSync ? new Date(existing.lastSync).toLocaleString() : "从未"}</p>
+      <p style="margin-top:10px"><a href="javascript:clearToken()" style="color:#bbb;font-size:12px">🔒 清除本机授权</a></p>
     `;
   } else {
     body.innerHTML = `
@@ -150,16 +151,36 @@ function syncMsg(msg, ok) {
   else alert(msg);
 }
 
-/* 需要用户授权一次 GitHub token（用于读写 Gist），只存在本机浏览器 */
+/* Token 安全策略：
+   - 仅存于本机浏览器 localStorage，永不上传到任何服务器（除了 GitHub 官方 API）
+   - 建议用户创建一个【仅 gist 权限】的专用 token（权限最小化），而不是 full repo 权限
+   - 提供「清除授权」按钮，可随时抹掉本机保存的 token */
 function ensureToken() {
   let t = localStorage.getItem("shizi_gh_token");
   if (!t) {
-    t = prompt("首次同步需要授权 GitHub（用于把进度存到你自己的私有 Gist，安全且免费）\n\n请粘贴你的 GitHub Token（需要 gist 权限）：\n（就是刚才你生成的那个 ghp_ 开头的）");
+    t = prompt(
+      "首次同步需要 GitHub 授权（进度存到你自己账号的私有 Gist，安全免费）\n\n" +
+      "⚠️ 安全建议：请创建一个【仅 gist 权限】的专用 token：\n" +
+      "GitHub → Settings → Developer settings → Tokens (classic) → 只勾选 gist\n\n" +
+      "请粘贴 token（ghp_ 开头）："
+    );
     if (!t) return null;
     t = t.trim();
+    // 基本格式校验，防止误粘贴其它内容
+    if (!/^ghp_[A-Za-z0-9]{36,}$/.test(t) && !/^github_pat_[A-Za-z0-9_]{20,}$/.test(t)) {
+      alert("格式不对，应以 ghp_ 或 github_pat_ 开头");
+      return null;
+    }
     localStorage.setItem("shizi_gh_token", t);
   }
   return t;
+}
+function clearToken() {
+  if (confirm("确定要清除本机保存的 GitHub 授权吗？\n（不影响云端的进度数据，只是本机不再自动同步）")) {
+    localStorage.removeItem("shizi_gh_token");
+    alert("已清除 ✅ 下次同步时会重新询问");
+    closeSyncModal();
+  }
 }
 
 async function createSync() {
