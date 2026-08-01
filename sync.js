@@ -4,8 +4,8 @@
    同步码: SHIZI-XXXXXX → KV key: progress:SHIZI-XXXXXX */
 "use strict";
 
-/* TODO: 部署 Worker 后，把下面地址换成你的 Worker 地址 */
-const SYNC_API = "https://shizi-sync-api.你的子域.workers.dev";
+/* 同步 API 与网站同源（Pages Functions），用相对路径即可 */
+const SYNC_API = "";
 
 const SYNC_LS_KEY = "shizi_sync_v1";
 let SYNC = loadSync();
