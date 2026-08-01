@@ -1,4 +1,4 @@
-/* ===== 暑假识字乐园 核心逻辑 ===== */
+/* ===== 三角洲识字特训营 核心逻辑 ===== */
 "use strict";
 
 /* ---------- 存储 ---------- */
@@ -122,31 +122,31 @@ function renderHome() {
 
   el.innerHTML = `
     <div class="card hero">
-      <h1>🌈 暑假识字大挑战</h1>
-      <p>20 天学会二年级上册 ${DATA.total} 个生字</p>
-      <div class="day-badge">📅 今天是第 ${day} 天 ${elapsed >= 20 ? "（计划已完成）" : ""}</div>
+      <h1>🪖 三角洲识字特训营</h1>
+      <p>20 天攻克二年级上册 ${DATA.total} 个生字</p>
+      <div class="day-badge">🪖 入营第 ${day} 天 ${elapsed >= 20 ? "（特训已完成）" : ""}</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${Math.round(learnedCount / DATA.total * 100)}%">${learnedCount}/${DATA.total}</div></div>
       <div class="stat-chips">
-        <span class="chip">⭐ 已学 ${learnedCount} 字</span>
-        <span class="chip">🎯 正确率 ${acc}%</span>
-        <span class="chip">🔥 坚持 ${S.studyDays.length} 天</span>
+        <span class="chip">🎖️ 已训 ${learnedCount} 字</span>
+        <span class="chip">🎯 命中率 ${acc}%</span>
+        <span class="chip">🔥 出勤 ${S.studyDays.length} 天</span>
       </div>
     </div>
     <div class="home-grid">
       <div class="home-tile tile-study" onclick="go('study')">
-        <div class="icon">📖</div>
-        <h3>今日学习</h3>
-        <p>第 ${day} 天 · 新学 ${(DAY_CHARS[day] || []).length} 个字 ${todayDone ? "✅ 已学习" : ""}</p>
+        <div class="icon">🎯</div>
+        <h3>今日特训</h3>
+        <p>第 ${day} 天 · 新训 ${(DAY_CHARS[day] || []).length} 个字 ${todayDone ? "✅ 已特训" : ""}</p>
       </div>
       <div class="home-tile tile-review" onclick="go('review')">
-        <div class="icon">🔁</div>
-        <h3>今日复习</h3>
-        <p>${reviewSources.length > 0 ? `${reviewSources.length} 组字到复习期啦！（已完成 ${reviewDoneToday.length}/${reviewSources.length}）` : "今天没有到期复习，去学习新字吧"}</p>
+        <div class="icon">🔄</div>
+        <h3>战术复习</h3>
+        <p>${reviewSources.length > 0 ? `${reviewSources.length} 组字进入复习窗口！（已完成 ${reviewDoneToday.length}/${reviewSources.length}）` : "暂无到期复习，去新训吧"}</p>
       </div>
       <div class="home-tile tile-stats" onclick="go('stats')">
-        <div class="icon">📊</div>
-        <h3>学习报告</h3>
-        <p>看看我的学习成果</p>
+        <div class="icon">📋</div>
+        <h3>作战报告</h3>
+        <p>查看我的训练成果</p>
       </div>
     </div>
   `;
@@ -154,10 +154,10 @@ function renderHome() {
 
 /* ---------- 学习页 ---------- */
 const STUDY_MODES = [
-  { id: "flash", icon: "🃏", name: "识字卡片", desc: "一个一个认识新字" },
-  { id: "quiz", icon: "🔊", name: "听音选字", desc: "听读音，找汉字" },
-  { id: "pinyin", icon: "🅿️", name: "看字选拼音", desc: "选出正确读音" },
-  { id: "hunt", icon: "🔍", name: "火眼金睛", desc: "在一堆字里找到它" },
+  { id: "flash", icon: "🪪", name: "识别卡", desc: "逐一识别新字" },
+  { id: "quiz", icon: "🔊", name: "听令选字", desc: "听读音，锁定汉字" },
+  { id: "pinyin", icon: "🔤", name: "看字选读音", desc: "锁定正确读音" },
+  { id: "hunt", icon: "🎯", name: "目标锁定", desc: "在字海里锁定目标" },
 ];
 function renderStudy() {
   const el = document.getElementById("page-study");
@@ -168,8 +168,8 @@ function renderStudy() {
 
   el.innerHTML = `
     <div class="card">
-      <h2 class="sec-title">📖 第 ${day} 天 · 今日新字（${chars.length} 个）</h2>
-      <p style="color:#888">完成下面 4 种练习，今天的学习就过关啦！已完成 ${doneCount}/4</p>
+      <h2 class="sec-title">🎯 第 ${day} 天 · 今日新训（${chars.length} 个）</h2>
+      <p style="color:#888">完成下面 4 项训练，今天特训就达标啦！已达标 ${doneCount}/4</p>
       <div class="progress-wrap"><div class="progress-bar" style="width:${doneCount / 4 * 100}%"></div></div>
     </div>
     <div class="card">
@@ -184,7 +184,7 @@ function renderStudy() {
           <div class="icon">${m.icon}</div>
           <h4>${m.name}</h4>
           <p>${m.desc}</p>
-          ${st[m.id] ? '<div class="done-badge">✅ 已完成</div>' : ""}
+          ${st[m.id] ? '<div class="done-badge">✅ 已达标</div>' : ""}
         </div>`).join("")}
     </div>
   `;
@@ -206,32 +206,32 @@ function renderReview() {
 
   el.innerHTML = `
     <div class="card">
-      <h2 class="sec-title">🔁 今日复习计划</h2>
-      <p style="color:#888">根据<b>艾宾浩斯记忆曲线</b>，学过的字要在第 1、2、4、7、15 天复习，才不会忘记哦！</p>
+      <h2 class="sec-title">🔄 今日战术复习</h2>
+      <p style="color:#888">根据<b>艾宾浩斯记忆曲线</b>，学过的字要在第 1、2、4、7、15 天巩固，才能牢牢记住！</p>
       <div class="legend">
-        <span>🟣 到期复习</span><span>🔴 含错题（优先练）</span><span>✅ 已完成</span>
+        <span>🟣 到期复习</span><span>🔴 含未掌握（优先练）</span><span>✅ 已完成</span>
       </div>
-      ${rows.length === 0 ? `<div class="empty-state"><div class="icon">🎉</div><p>今天没有到期的复习内容！<br>去学习新字，或者复习一下错题吧～</p></div>` : ""}
+      ${rows.length === 0 ? `<div class="empty-state"><div class="icon">🎖️</div><p>今天没有到期的复习内容！<br>去新训，或者加练一下未掌握的字吧～</p></div>` : ""}
       ${rows.map(r => `
         <div class="review-day-row ${r.isDone ? "done" : ""}">
           <div class="info">
-            第 ${r.day} 天学的 ${r.total} 个字
-            <span class="tag">到期复习</span>
-            ${r.wrongs > 0 ? `<span class="tag wrong-tag">含 ${r.wrongs} 个错题</span>` : ""}
+            第 ${r.day} 天新训的 ${r.total} 个字
+            <span class="tag">待巩固</span>
+            ${r.wrongs > 0 ? `<span class="tag wrong-tag">含 ${r.wrongs} 个未掌握</span>` : ""}
           </div>
-          ${r.isDone ? "<span style='font-size:22px'>✅</span>" : `<button class="btn btn-secondary" onclick="startReview(${r.day})">开始复习 ▶</button>`}
+          ${r.isDone ? "<span style='font-size:22px'>✅</span>" : `<button class="btn btn-secondary" onclick="startReview(${r.day})">开始巩固 ▶</button>`}
         </div>`).join("")}
     </div>
     ${weakChars().length > 0 ? `
     <div class="card">
-      <h2 class="sec-title">💪 错题强化训练营</h2>
-      <p style="color:#888">这些字之前做错过，随时可以来加练！</p>
+      <h2 class="sec-title">💪 未掌握专项加练</h2>
+      <p style="color:#888">这些字之前没锁定，随时可以来加练！</p>
       <div style="text-align:center;margin-top:12px">
-        <button class="btn btn-primary btn-big" onclick="startWeakTraining()">开始强化训练（${weakChars().length} 字）💪</button>
+        <button class="btn btn-primary btn-big" onclick="startWeakTraining()">开始加练（${weakChars().length} 字）💪</button>
       </div>
     </div>` : ""}
     <div class="card">
-      <h2 class="sec-title">🗓️ 未来复习安排</h2>
+      <h2 class="sec-title">🗓️ 未来巩固安排</h2>
       ${futureSchedule()}
     </div>
   `;
@@ -289,7 +289,7 @@ function nextRound() {
   const head = `
     <div class="game-head">
       <button class="btn btn-yellow" onclick="quitGame()">← 返回</button>
-      <span class="streak">⭐ ${G.right} 对 / ${G.wrong} 错</span>
+      <span class="streak">🎯 ${G.right} 命中 / ${G.wrong} 失误</span>
       <span style="font-weight:800">${G.idx + 1} / ${G.chars.length}</span>
     </div>`;
   if (G.mode === "flash") area.innerHTML = head + flashHTML(ch);
@@ -308,10 +308,10 @@ function flashHTML(ch) {
       <div>${ch}</div>
       <div class="flash-meta">${info.u} · ${info.l} · 点我听读音 🔊</div>
     </div>
-    <p style="color:#888">认识这个字吗？点字卡听读音，然后诚实选择～</p>
+    <p style="color:#888">认识这个字吗？点字卡听读音，然后如实汇报～</p>
     <div class="know-btns">
-      <button class="btn btn-green btn-big" onclick="flashAnswer(true)">😄 我认识</button>
-      <button class="btn btn-primary btn-big" onclick="flashAnswer(false)">😅 还不熟</button>
+      <button class="btn btn-green btn-big" onclick="flashAnswer(true)">😎 已掌握</button>
+      <button class="btn btn-primary btn-big" onclick="flashAnswer(false)">🤔 待加强</button>
     </div>
   </div>`;
 }
@@ -328,7 +328,7 @@ function quizHTML(ch) {
   setTimeout(() => speak(ch), 300);
   return `
   <div class="card">
-    <div class="game-q">🔊 听一听，选出你听到的字
+    <div class="game-q">🔊 听指令，锁定你听到的字
       <button class="btn btn-secondary" onclick="speak('${ch}')">再听一遍 🔂</button>
     </div>
     <div class="options-grid">
@@ -345,7 +345,7 @@ function pinyinHTML(ch) {
   const opts = shuffle([info.p, ...others]);
   return `
   <div class="card">
-    <div class="game-q">这个字读什么？<span class="big">${ch}</span></div>
+    <div class="game-q">这个字怎么读？<span class="big">${ch}</span></div>
     <div class="options-grid">
       ${opts.map(o => `<button class="opt-btn pinyin-opt" onclick="answer(this,'${o}','${info.p}')">${o}</button>`).join("")}
     </div>
@@ -359,7 +359,7 @@ function huntHTML(ch) {
   const cells = shuffle([ch, ...distractors]);
   return `
   <div class="card">
-    <div class="game-q">🔍 找出这个字：<span style="color:var(--c-primary);font-size:44px">${ch}</span>
+    <div class="game-q">🎯 锁定这个字：<span style="color:var(--c-primary);font-size:44px">${ch}</span>
       <button class="btn btn-secondary" onclick="speak('${ch}')">🔊</button>
     </div>
     <div class="hunt-grid">
@@ -375,12 +375,12 @@ function huntAnswer(el, pick, right) {
     huntLock = true;
     el.classList.add("hit");
     markResult(right, true, G.kind); G.right++;
-    fb("答对啦！🎉", true);
+    fb("锁定目标！🎯", true);
     setTimeout(() => { huntLock = false; G.idx++; nextRound(); }, 700);
   } else {
     el.classList.add("miss");
     markResult(right, false, G.kind); G.wrong++;
-    fb("不是这个，再找找～", false);
+    fb("目标不对，再锁定～", false);
     setTimeout(() => el.classList.remove("miss"), 400);
   }
 }
@@ -394,7 +394,7 @@ function answer(el, pick, right) {
   if (ok) {
     el.classList.add("correct");
     markResult(right, true, G.kind); G.right++;
-    fb("答对啦！🎉", true);
+    fb("命中！🎯", true);
   } else {
     el.classList.add("wrong");
     document.querySelectorAll(".opt-btn").forEach(b => {
@@ -459,15 +459,15 @@ function finishGame() {
   recordStudyDay(); save();
 
   let emoji, msg;
-  if (acc === 100) { emoji = "🏆🌟🎉"; msg = "全部答对！你是识字小达人！"; }
-  else if (acc >= 80) { emoji = "🎉👏⭐"; msg = "非常棒！继续加油！"; }
-  else if (acc >= 60) { emoji = "💪🌈"; msg = "不错哦！错字已加入复习计划～"; }
-  else { emoji = "🌱💪"; msg = "别灰心！错字会反复出现帮你记住它！"; }
+  if (acc === 100) { emoji = "🏆🌟🎖️"; msg = "全员命中！你是王牌干员！"; }
+  else if (acc >= 80) { emoji = "🎖️👏⭐"; msg = "表现优秀！继续保持！"; }
+  else if (acc >= 60) { emoji = "💪🎯"; msg = "不错！未掌握的字已加入巩固计划～"; }
+  else { emoji = "🌱💪"; msg = "别急！未掌握的字会反复出现帮你记住它！"; }
 
   document.getElementById("celebrateContent").innerHTML = `
     <div class="emoji-rain">${emoji}</div>
     <h2>${msg}</h2>
-    <p>本轮 ${total} 题 · 答对 ${G.right} · 正确率 ${acc}%</p>
+    <p>本轮 ${total} 题 · 命中 ${G.right} · 命中率 ${acc}%</p>
   `;
   document.getElementById("celebrateModal").classList.remove("hidden");
   if (typeof autoSync === "function") autoSync(); // 静默上传云端
@@ -499,28 +499,28 @@ function renderStats() {
 
   el.innerHTML = `
     <div class="card">
-      <h2 class="sec-title">📊 我的学习报告</h2>
+      <h2 class="sec-title">📋 我的作战报告</h2>
       <div class="stats-grid">
-        <div class="stat-box"><div class="num" style="color:var(--c-primary)">${learned}</div><div class="label">已学生字</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--c-green)">${mastered}</div><div class="label">熟练掌握</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--c-blue)">${acc}%</div><div class="label">答题正确率</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--c-purple)">${S.studyDays.length}</div><div class="label">坚持天数</div></div>
-        <div class="stat-box"><div class="num" style="color:#F59E0B">${weak.length}</div><div class="label">待强化错字</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--c-primary)">${learned}</div><div class="label">已训生字</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--c-green)">${mastered}</div><div class="label">稳定掌握</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--c-blue)">${acc}%</div><div class="label">命中率</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--c-purple)">${S.studyDays.length}</div><div class="label">出勤天数</div></div>
+        <div class="stat-box"><div class="num" style="color:#F59E0B">${weak.length}</div><div class="label">待巩固字</div></div>
       </div>
     </div>
     <div class="card">
-      <h2 class="sec-title">🗓️ 20 天学习日历</h2>
+      <h2 class="sec-title">🗓️ 20 天特训日历</h2>
       <div class="calendar">${cal}</div>
-      <p style="color:#aaa;font-size:14px;margin-top:8px">⭐ = 当天有学习记录</p>
+      <p style="color:#aaa;font-size:14px;margin-top:8px">⭐ = 当天有训练</p>
     </div>
     ${weak.length > 0 ? `
     <div class="card">
-      <h2 class="sec-title">😅 容易错的字（点多加练）</h2>
+      <h2 class="sec-title">😅 容易失误的字（点多加练）</h2>
       <div class="weak-chars">
         ${weak.map(c => `<div class="weak-char" onclick="speak('${c}')" title="${CHAR_MAP[c].p}">${c}</div>`).join("")}
       </div>
     </div>` : `
-    <div class="card empty-state"><div class="icon">🏆</div><p>太厉害了！目前没有易错字！</p></div>`}
+    <div class="card empty-state"><div class="icon">🏆</div><p>太强了！目前零失误！</p></div>`}
   `;
 }
 
