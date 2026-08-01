@@ -177,6 +177,14 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .modal-card input[type=date] { font-size: 18px; padding: 10px 16px; border-radius: 12px; border: 2px solid #ddd; margin: 10px 0; }
 .modal-btns { margin-top: 16px; }
 .tip { font-size: 13px; color: #aaa; }
+
+/* ===== 跨终端同步 ===== */
+.sync-code {
+  font-size: 30px; font-weight: 800; letter-spacing: 3px;
+  background: linear-gradient(135deg, #FFF3D6, #FFE8E8);
+  border: 3px dashed var(--c-yellow); border-radius: 16px;
+  padding: 14px; margin: 12px 0; font-family: "Courier New", monospace;
+}
 .celebrate { font-size: 20px; }
 .celebrate .emoji-rain { font-size: 46px; }
 
