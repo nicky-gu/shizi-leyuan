@@ -98,11 +98,24 @@ function go(p) {
 function render() { go("home"); }
 
 /* ---------- 发音 ---------- */
+// 优先播放预生成的高质量音频（跨端一致、拼音/声调准确）；缺失或失败再回退浏览器 TTS
 function speak(text) {
+  if (text && text.length === 1) {
+    const fn = "assets/audio/u" + text.codePointAt(0).toString(16) + ".mp3";
+    const a = new Audio(fn);
+    let fell = false;
+    const fb = () => { if (!fell) { fell = true; fallbackSpeak(text); } };
+    a.onerror = fb;
+    a.play().catch(fb);
+    return;
+  }
+  fallbackSpeak(text);
+}
+function fallbackSpeak(text) {
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-CN"; u.rate = 0.7;
+    u.lang = "zh-CN"; u.rate = 0.8;
     speechSynthesis.speak(u);
   } catch (e) {}
 }
