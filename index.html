@@ -30,8 +30,20 @@
     <button class="nav-btn" id="nav-study" onclick="go('study')">📖 今日学习</button>
     <button class="nav-btn" id="nav-review" onclick="go('review')">🔁 今日复习</button>
     <button class="nav-btn" id="nav-stats" onclick="go('stats')">📊 学习报告</button>
+    <button class="nav-btn" id="nav-sync" onclick="openSyncModal()">☁️ 同步</button>
   </nav>
 </header>
+
+<!-- ===== 跨终端同步弹窗 ===== -->
+<div id="syncModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>☁️ 跨终端同步</h2>
+    <div id="syncBody"></div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn btn-yellow" onclick="closeSyncModal()">关闭</button>
+    </div>
+  </div>
+</div>
 
 <main>
   <!-- ===== 首页 ===== -->
@@ -63,6 +75,7 @@
 <audio id="dingSound" preload="auto"></audio>
 
 <script src="data.js"></script>
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
