@@ -1,8 +1,7 @@
-/* Pages Function: 同步 API
-   GET  /sync/:code   读取进度
-   POST /sync         保存进度 { code, data }
-   KV 绑定变量名: SYNC_KV
-   同步码规则: 4-20位字母/数字/中划线（与前端一致） */
+/* Pages Function: /sync/:code
+   GET    读取进度
+   POST   保存进度 { code, data }
+   KV 绑定变量名: SYNC_KV */
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -17,26 +16,38 @@ function json(obj, status) {
   });
 }
 
+async function saveProgress(env, rawCode, data) {
+  const code = (rawCode || "").toUpperCase();
+  if (!CODE_RE.test(code)) return json({ error: "同步码格式错误" }, 400);
+  if (!data || typeof data !== "object") return json({ error: "缺少 data" }, 400);
+  const payload = JSON.stringify(data);
+  if (payload.length > 100 * 1024) return json({ error: "数据过大" }, 413);
+  await env.SYNC_KV.put("progress:" + code, payload, { expirationTtl: 90 * 24 * 3600 });
+  return json({ ok: true, code, savedAt: Date.now() }, 200);
+}
+
 export async function onRequestOptions() {
   return new Response(null, { headers: CORS });
 }
 
 export async function onRequestGet(context) {
-  const code = (context.params.code || "").toUpperCase();
-  if (!CODE_RE.test(code)) return json({ error: "同步码格式错误" }, 400);
-  const val = await context.env.SYNC_KV.get("progress:" + code);
-  if (!val) return json({ error: "同步码不存在" }, 404);
-  return new Response(val, { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+  try {
+    const code = (context.params.code || "").toUpperCase();
+    if (!CODE_RE.test(code)) return json({ error: "同步码格式错误" }, 400);
+    const val = await context.env.SYNC_KV.get("progress:" + code);
+    if (!val) return json({ error: "同步码不存在" }, 404);
+    return new Response(val, { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+  } catch (e) {
+    return json({ error: "server error", detail: String(e && e.message || e) }, 500);
+  }
 }
 
 export async function onRequestPost(context) {
-  let body;
-  try { body = await context.request.json(); } catch (e) { return json({ error: "bad json" }, 400); }
-  const code = (body.code || "").toUpperCase();
-  if (!CODE_RE.test(code)) return json({ error: "同步码格式错误" }, 400);
-  if (!body.data || typeof body.data !== "object") return json({ error: "缺少 data" }, 400);
-  const payload = JSON.stringify(body.data);
-  if (payload.length > 100 * 1024) return json({ error: "数据过大" }, 413);
-  await context.env.SYNC_KV.put("progress:" + code, payload, { expirationTtl: 90 * 24 * 3600 });
-  return json({ ok: true, code, savedAt: Date.now() }, 200);
+  try {
+    let body;
+    try { body = await context.request.json(); } catch (e) { return json({ error: "bad json" }, 400); }
+    return await saveProgress(context.env, body.code, body.data);
+  } catch (e) {
+    return json({ error: "server error", detail: String(e && e.message || e) }, 500);
+  }
 }
