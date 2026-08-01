@@ -191,6 +191,37 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .empty-state { text-align: center; padding: 50px 20px; }
 .empty-state .icon { font-size: 64px; }
 
+/* ===== 吉祥物：威龙·宇航员 + 线条刀 ===== */
+.mascot { width: 170px; margin: 0 auto 4px; }
+.mascot-celebrate { width: 200px; margin: 0 auto 6px; }
+.mascot-svg { width: 100%; height: auto; display: block; animation: float 3.2s ease-in-out infinite; transform-origin: 110px 200px; }
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-12px) rotate(1.5deg); }
+}
+/* 全面浮动时不干扰手臂挥刀，手臂独立绕肩部旋转 */
+.mascot-svg .arm { transform-box: view-box; transform-origin: 150px 146px; }
+.mascot-svg.slash .arm { animation: slash .7s cubic-bezier(.3,1.4,.5,1); }
+@keyframes slash {
+  0% { transform: rotate(-14deg); }
+  40% { transform: rotate(82deg); }
+  100% { transform: rotate(0deg); }
+}
+.mascot-svg .slash-fx { stroke-dasharray: 130; stroke-dashoffset: 130; }
+.mascot-svg.slash .slash-fx { animation: fx .7s ease-out; }
+@keyframes fx {
+  0% { opacity: 0; stroke-dashoffset: 130; }
+  35% { opacity: 1; stroke-dashoffset: 0; }
+  60% { opacity: .65; }
+  100% { opacity: 0; stroke-dashoffset: -40; }
+}
+.mascot-svg .sparkles { animation: twinkle 2.4s ease-in-out infinite; transform-box: view-box; transform-origin: 110px 130px; }
+@keyframes twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .mascot-svg, .mascot-svg .sparkles { animation: none; }
+  .mascot-svg.slash .arm, .mascot-svg.slash .slash-fx { animation: none; }
+}
+
 @media (max-width: 600px) {
   .flash-char { width: 220px; height: 220px; font-size: 110px; }
   .options-grid { grid-template-columns: 1fr 1fr; }
