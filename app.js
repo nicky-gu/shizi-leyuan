@@ -500,8 +500,8 @@ function renderStats() {
   }
 
   el.innerHTML = `
-    <div class="card">
-      <h2 class="sec-title">📋 我的作战报告</h2>
+    <div class="card stats-hero">
+      <h2 class="sec-title" style="color:#fff">📋 我的作战报告</h2>
       <div class="stats-grid">
         <div class="stat-box"><div class="num" style="color:var(--c-primary)">${learned}</div><div class="label">已训生字</div></div>
         <div class="stat-box"><div class="num" style="color:var(--c-green)">${mastered}</div><div class="label">稳定掌握</div></div>
