@@ -1,0 +1,7 @@
+name = "shizi-leyuan"
+compatibility_date = "2025-08-01"
+
+# 静态站点部署（Workers Static Assets，免费套餐可用）
+[assets]
+directory = "./"
+not_found_handling = "404-page"
