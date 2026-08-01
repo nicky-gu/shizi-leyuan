@@ -30,67 +30,51 @@
 ```
 ├── index.html / style.css / app.js   网站前端（纯静态）
 ├── data.js                           607 生字库 + 20 天计划（gen_data.py 生成）
-├── sync.js                           跨终端同步（浏览器端，调 Worker API）
-├── wrangler.toml                     网站静态部署配置
-└── worker/
-    ├── worker.js                     同步 API（Cloudflare Worker）
-    └── wrangler.toml                 Worker 配置（KV 绑定）
+├── sync.js                           跨终端同步（浏览器端，调同源 API）
+├── functions/sync/[[code]].js        同步 API（Pages Functions，读写 KV）
+└── wrangler.toml                     本地 wrangler 部署配置（可选）
 ```
 
 ---
 
-## 🚀 部署步骤（Cloudflare 图形界面，全部免费）
+## 🚀 部署步骤（Cloudflare Pages，一个项目搞定全部）
 
-只需 **2 个 Worker**：一个托管网站，一个做同步 API。
+网站和同步 API 都在**同一个 Pages 项目**里（Pages Functions 自动识别 `functions/` 目录）。
 
-### 第 1 步：创建 KV 命名空间（存进度数据）
+### 第 1 步：创建 KV 命名空间
 
-1. 打开 https://dash.cloudflare.com → 左侧 **Workers & Pages**
-2. 点上方 **KV** 标签 → **Create a namespace**
-3. 名称填：`SYNC_KV` → **Add**
-4. 创建后点进去，**复制 Namespace ID**（一串 32 位字符），等下要用
+1. https://dash.cloudflare.com → 左侧 **Workers & Pages** → 上方 **KV** 标签
+2. **Create a namespace** → 名称 `SYNC_KV` → **Add**
 
-### 第 2 步：部署同步 API Worker
+### 第 2 步：部署网站（GitHub 自动部署）
 
-1. 左侧 **Workers & Pages** → **Create application** → **Create Worker**
-2. 名称填：`shizi-sync-api` → **Deploy**（先部署个空的）
-3. 部署完点 **Edit code**，把左侧代码全部删掉，粘贴 `worker/worker.js` 的内容 → 右上角 **Save and deploy**
-4. 回到 Worker 页面 → **Settings** 标签 → **Variables** → **KV Namespace Bindings** → **Add binding**：
-   - Variable name: `SYNC_KV`
-   - KV namespace: 选刚创建的 `SYNC_KV`
-   - **Save and deploy**
-5. 你的 API 地址就是：`https://shizi-sync-api.<你的子域>.workers.dev`
-
-### 第 3 步：把 API 地址填进前端
-
-打开 `sync.js` 第 7 行，改成你的 Worker 地址：
-```js
-const SYNC_API = "https://shizi-sync-api.你的子域.workers.dev";
-```
-
-### 第 4 步：部署网站（两种方式任选）
-
-**方式 A：本地命令行（最快）**
-```bash
-npm install -g wrangler
-wrangler login          # 浏览器授权一次
-wrangler deploy         # 在项目根目录执行，用根目录的 wrangler.toml
-```
-得到 `https://shizi-leyuan.<你的子域>.workers.dev`
-
-**方式 B：GitHub 自动部署（以后改代码自动上线）**
 1. **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
 2. 授权 GitHub → 选 `shizi-leyuan` 仓库
 3. Framework preset 选 `None`，Build command 留空，Output directory 填 `/`
-4. **Save and Deploy**，以后 push 代码自动重新部署
+4. **Save and Deploy**，得到 `https://xxx.pages.dev`
+
+### 第 3 步：给 Pages 项目绑定 KV
+
+1. 打开你的 Pages 项目 → **Settings** → **Functions**
+2. **KV namespace bindings** → **Add binding**：
+   - Variable name: `SYNC_KV`
+   - KV namespace: 选刚创建的 `SYNC_KV`
+   - Environment 选 `Production`（建议 Production 和 Preview 都加）
+3. **Save** → 回到 **Deployments** → 最新部署点 **⋯** → **Retry deployment**（重新部署让绑定生效）
+
+✅ 完成！同步 API 地址就是 `/sync`（与网站同源），前端已用相对路径，**无需改任何代码**。
+
+> 💡 以后 push 代码到 GitHub，Pages 自动重新部署。
 
 ---
 
 ## ✅ 验证同步是否成功
 
-1. 打开部署好的网站 → 点「☁️ 同步」→「🆕 生成我的同步码」
-2. 如果生成出 `SHIZI-XXXXXX` 且提示"已上传"，说明 KV 绑定成功 ✅
-3. 用浏览器无痕窗口打开同一网址 →「☁️ 同步」→ 输入刚才的同步码 →「加入已有同步」→ 进度一致即成功
+1. 打开 `https://xxx.pages.dev` → 点「☁️ 同步」→「🆕 生成我的同步码」
+2. 生成出 `SHIZI-XXXXXX` 且提示"已上传"，说明 KV 绑定成功 ✅
+3. 无痕窗口打开同一网址 → 输入同一同步码 →「加入已有同步」→ 进度一致即成功
+
+> 也可直接测 API：`curl https://xxx.pages.dev/sync/SHIZI-ABC123` 应返回 404 而不是 502/500（404 说明 Function 正常工作了）
 
 ---
 
