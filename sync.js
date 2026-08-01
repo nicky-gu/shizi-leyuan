@@ -100,6 +100,7 @@ function unlinkSync() {
   if (confirm("断开本机与同步码的关联？\n（云端进度保留，本机进度也保留，只是不再自动同步）")) {
     SYNC = null;
     localStorage.removeItem(SYNC_LS_KEY);
+    stopAutoSync(); updateSyncBadge();
     closeSyncModal();
   }
 }
@@ -127,8 +128,9 @@ async function createSync() {
     if (r.status !== 200) throw new Error(r.body.error || ("HTTP " + r.status));
     SYNC = { code, lastSync: Date.now() };
     saveSync();
+    startAutoSync(); updateSyncBadge();
     openSyncModal();
-    syncMsg("✅ 同步码创建成功！别的设备输入它即可同步", true);
+    syncMsg("✅ 同步码创建成功！别的设备输入它即可同步（已开启自动同步）", true);
   } catch (e) {
     alert("创建失败：" + e.message);
     syncMsgCreate("✅ 用这个同步码创建");
@@ -149,8 +151,9 @@ async function joinSync() {
     mergeProgress(r.body);
     SYNC = { code, lastSync: Date.now() };
     saveSync();
+    startAutoSync(); updateSyncBadge();
     openSyncModal();
-    syncMsg("✅ 已加入同步，进度已合并！", true);
+    syncMsg("✅ 已加入同步，进度已合并！（已开启自动同步）", true);
     setTimeout(() => render(), 600);
   } catch (e) { alert("加入失败：" + e.message); }
 }
@@ -174,12 +177,87 @@ async function doPull() {
   } catch (e) { syncMsg("拉取失败：" + e.message, false); }
 }
 
-/* 每次练习结束自动上传（静默） */
-async function autoSync() {
+/* ===== 自动同步引擎 ===== */
+let _pushTimer = null;
+let _syncing = false;
+
+/* 防抖上传：练习结束后3秒再传，连续操作会合并成一次 */
+function autoSync() {
   if (!SYNC || !SYNC.code) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(() => doAutoPush(), 3000);
+}
+async function doAutoPush() {
+  if (!SYNC || !SYNC.code || _syncing) return;
+  _syncing = true;
   try {
     await apiSave(SYNC.code, S || {});
     SYNC.lastSync = Date.now(); saveSync();
-    console.log("[sync] 自动上传完成");
+    updateSyncBadge();
+    console.log("[sync] 自动上传完成", new Date().toLocaleTimeString());
   } catch (e) { console.warn("[sync] 自动上传失败", e); }
+  _syncing = false;
 }
+
+/* 静默拉取并合并（打开网站/定时用） */
+async function silentPull() {
+  if (!SYNC || !SYNC.code || _syncing) return;
+  _syncing = true;
+  try {
+    const r = await apiGet(SYNC.code);
+    if (r.status === 200) {
+      const before = JSON.stringify(S);
+      mergeProgress(r.body);
+      // 只有远程有新内容才刷新界面
+      if (JSON.stringify(S) !== before) {
+        console.log("[sync] 拉取到新进度，已合并");
+        if (typeof render === "function") render();
+      }
+      SYNC.lastSync = Date.now(); saveSync();
+      updateSyncBadge();
+    }
+  } catch (e) { console.warn("[sync] 自动拉取失败", e); }
+  _syncing = false;
+}
+
+/* 完整双向同步：先拉取合并，再上传 */
+async function fullSync() {
+  await silentPull();
+  await doAutoPush();
+}
+
+/* 定时自动同步：每5分钟一次（页面在前台时） */
+let _autoTimer = null;
+function startAutoSync() {
+  if (!SYNC || !SYNC.code) return;
+  stopAutoSync();
+  _autoTimer = setInterval(() => {
+    if (document.visibilityState === "visible") fullSync();
+  }, 5 * 60 * 1000);
+  console.log("[sync] 自动同步已启动（每5分钟）");
+}
+function stopAutoSync() { if (_autoTimer) { clearInterval(_autoTimer); _autoTimer = null; } }
+
+/* 回到前台时立即同步一次 */
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && SYNC && SYNC.code) silentPull();
+});
+
+/* 导航栏同步按钮上显示状态点 */
+function updateSyncBadge() {
+  const btn = document.getElementById("nav-sync");
+  if (!btn) return;
+  btn.innerHTML = SYNC && SYNC.code
+    ? `☁️ 同步 <span style="color:var(--c-green);font-size:12px">●</span>`
+    : "☁️ 同步";
+}
+
+/* 页面加载时：有同步码则立即拉取一次 + 启动定时同步 */
+window.addEventListener("load", () => {
+  updateSyncBadge();
+  if (SYNC && SYNC.code) {
+    silentPull();
+    startAutoSync();
+  }
+});
+
