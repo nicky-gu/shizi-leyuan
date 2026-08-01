@@ -470,6 +470,7 @@ function finishGame() {
     <p>本轮 ${total} 题 · 答对 ${G.right} · 正确率 ${acc}%</p>
   `;
   document.getElementById("celebrateModal").classList.remove("hidden");
+  if (typeof autoSync === "function") autoSync(); // 静默上传云端
 }
 function closeCelebrate() {
   document.getElementById("celebrateModal").classList.add("hidden");
