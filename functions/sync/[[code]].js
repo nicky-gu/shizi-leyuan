@@ -32,7 +32,9 @@ export async function onRequestOptions() {
 
 export async function onRequestGet(context) {
   try {
-    const code = (context.params.code || "").toUpperCase();
+    // [[code]] 双括号通配符返回数组，取第一段并兼容字符串
+    const p = context.params.code;
+    const code = String(Array.isArray(p) ? p.join("/") : (p || "")).toUpperCase();
     if (!CODE_RE.test(code)) return json({ error: "同步码格式错误" }, 400);
     const val = await context.env.SYNC_KV.get("progress:" + code);
     if (!val) return json({ error: "同步码不存在" }, 404);
