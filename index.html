@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暑假识字乐园 🌈 二年级生字 20 天挑战</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== 首次使用：设置开始日期 ===== -->
+<div id="setupModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>🎒 欢迎来到暑假识字乐园！</h2>
+    <p>我们将在 <b>20 天</b>里学完二年级上册 <b>607 个生字</b>。<br>每天学新字 + 按记忆曲线复习旧字。</p>
+    <p>请选择开始学习的日期：</p>
+    <input type="date" id="startDateInput">
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveStartDate()">从今天开始 🚀</button>
+    </div>
+    <p class="tip">📌 学习记录保存在本浏览器中，请每天在同一设备学习哦</p>
+  </div>
+</div>
+
+<!-- ===== 顶部导航 ===== -->
+<header>
+  <div class="logo" onclick="go('home')">🌈 暑假识字乐园</div>
+  <nav>
+    <button class="nav-btn" id="nav-home" onclick="go('home')">🏠 首页</button>
+    <button class="nav-btn" id="nav-study" onclick="go('study')">📖 今日学习</button>
+    <button class="nav-btn" id="nav-review" onclick="go('review')">🔁 今日复习</button>
+    <button class="nav-btn" id="nav-stats" onclick="go('stats')">📊 学习报告</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ===== 首页 ===== -->
+  <section id="page-home" class="page"></section>
+
+  <!-- ===== 学习页 ===== -->
+  <section id="page-study" class="page hidden"></section>
+
+  <!-- ===== 复习页 ===== -->
+  <section id="page-review" class="page hidden"></section>
+
+  <!-- ===== 报告页 ===== -->
+  <section id="page-stats" class="page hidden"></section>
+
+  <!-- ===== 游戏/练习容器 ===== -->
+  <section id="page-game" class="page hidden">
+    <div id="gameArea"></div>
+  </section>
+</main>
+
+<!-- ===== 完成庆祝弹窗 ===== -->
+<div id="celebrateModal" class="modal hidden">
+  <div class="modal-card celebrate">
+    <div id="celebrateContent"></div>
+    <button class="btn btn-primary" onclick="closeCelebrate()">太棒了！✨</button>
+  </div>
+</div>
+
+<audio id="dingSound" preload="auto"></audio>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
