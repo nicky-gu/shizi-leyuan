@@ -67,9 +67,18 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .progress-bar { height: 100%; background: linear-gradient(90deg, var(--c-secondary), var(--c-green)); border-radius: 999px; transition: width .4s; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; }
 
 /* ===== 首页 ===== */
-.hero { text-align: center; padding: 30px 20px; }
+.hero {
+  text-align: center; padding: 36px 20px;
+  background:
+    linear-gradient(rgba(20,30,25,0.55), rgba(20,30,25,0.78)),
+    url("assets/hero.jpg") center/cover no-repeat;
+  border-radius: 28px; color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
 .hero h1 { font-size: 34px; margin-bottom: 8px; }
-.hero p { font-size: 18px; color: #777; }
+.hero p { font-size: 18px; color: rgba(255,255,255,0.92); }
+.hero .day-badge { color: #fff; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.3); }
+.hero .chip { background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.3); color: #fff; }
 .day-badge {
   display: inline-block; background: var(--c-yellow); border-radius: 16px;
   padding: 10px 24px; font-size: 20px; font-weight: 800; margin: 14px 0;
@@ -158,6 +167,19 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #888; margin: 8px 0 16px; }
 
 /* ===== 报告页 ===== */
+.stats-hero {
+  background:
+    linear-gradient(rgba(20,30,25,0.65), rgba(20,30,25,0.85)),
+    url("assets/report.jpg") center/cover no-repeat;
+  color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+.stats-hero .stat-box { background: rgba(255,255,255,0.92); }
+.header-logo { height: 38px; vertical-align: middle; margin-right: 8px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+.attribution { text-align: center; font-size: 12px; color: #888; padding: 16px 8px 24px; letter-spacing: 0.3px; }
+.attribution a { color: #6f8b76; text-decoration: none; }
+.attribution a:hover { text-decoration: underline; }
+.knife-deco { width: 86px; height: auto; position: fixed; right: 8px; top: 38%; opacity: 0.85; pointer-events: none; z-index: 5; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35)); animation: knifeBob 4.5s ease-in-out infinite; }
+@keyframes knifeBob { 0%,100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-6px); } }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; text-align: center; }
 .stat-box { background: #fff; border-radius: 16px; padding: 20px 10px; box-shadow: var(--shadow); }
 .stat-box .num { font-size: 38px; font-weight: 800; }
