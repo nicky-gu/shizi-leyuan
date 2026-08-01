@@ -1,23 +1,23 @@
-/* ===== 暑假识字乐园 —— 儿童友好风格 ===== */
+/* ===== 三角洲识字特训营 —— 战术风儿童主题 ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --c-bg: #FFF8E7;
-  --c-primary: #FF6B6B;
-  --c-secondary: #4ECDC4;
-  --c-yellow: #FFD93D;
-  --c-purple: #A78BFA;
-  --c-green: #6BCB77;
-  --c-blue: #4D96FF;
-  --c-text: #3A3A5A;
+  --c-bg: #E8E6D8;
+  --c-primary: #C75B39;
+  --c-secondary: #3F6B4F;
+  --c-yellow: #E0A526;
+  --c-purple: #566A7D;
+  --c-green: #4A8A5C;
+  --c-blue: #2E6396;
+  --c-text: #2C2A24;
   --radius: 20px;
-  --shadow: 0 6px 0 rgba(0,0,0,0.08);
+  --shadow: 0 6px 0 rgba(0,0,0,0.1);
 }
 
 body {
   font-family: "PingFang SC", "Microsoft YaHei", "Comic Sans MS", sans-serif;
   background: var(--c-bg);
-  background-image: radial-gradient(#ffe3b3 1.5px, transparent 1.5px);
+  background-image: radial-gradient(#ccc6a8 1.6px, transparent 1.6px);
   background-size: 28px 28px;
   color: var(--c-text);
   min-height: 100vh;
@@ -84,9 +84,9 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .home-tile .icon { font-size: 44px; }
 .home-tile h3 { font-size: 22px; margin: 8px 0 4px; }
 .home-tile p { font-size: 15px; opacity: .92; }
-.tile-study { background: linear-gradient(135deg, #FF6B6B, #FF9F45); }
-.tile-review { background: linear-gradient(135deg, #4ECDC4, #4D96FF); }
-.tile-stats { background: linear-gradient(135deg, #A78BFA, #F472B6); }
+.tile-study { background: linear-gradient(135deg, #C75B39, #E08A2E); }
+.tile-review { background: linear-gradient(135deg, #3F6B4F, #2E6396); }
+.tile-stats { background: linear-gradient(135deg, #566A7D, #2E6396); }
 
 .stat-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
 .chip { background: #fff; border-radius: 999px; padding: 8px 18px; font-weight: 700; box-shadow: var(--shadow); font-size: 15px; }
@@ -108,7 +108,7 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .flash-stage { text-align: center; padding: 20px; }
 .flash-char {
   font-size: 150px; font-weight: 800; line-height: 1.2; cursor: pointer;
-  background: linear-gradient(180deg, #fff, #FFF3D6); border-radius: 28px;
+  background: linear-gradient(180deg, #fff, #F1EFE0); border-radius: 28px;
   width: 280px; height: 280px; margin: 10px auto; display: flex; flex-direction: column;
   align-items: center; justify-content: center; box-shadow: var(--shadow);
   border: 6px solid var(--c-yellow); user-select: none;
@@ -181,7 +181,7 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 /* ===== 跨终端同步 ===== */
 .sync-code {
   font-size: 30px; font-weight: 800; letter-spacing: 3px;
-  background: linear-gradient(135deg, #FFF3D6, #FFE8E8);
+  background: linear-gradient(135deg, #F1EFE0, #F3E6DC);
   border: 3px dashed var(--c-yellow); border-radius: 16px;
   padding: 14px; margin: 12px 0; font-family: "Courier New", monospace;
 }
