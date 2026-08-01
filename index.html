@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>暑假识字乐园 🌈 二年级生字 20 天挑战</title>
+<title>三角洲行动·识字特训营 🪖 二年级生字 20 天</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,33 +11,33 @@
 <!-- ===== 首次使用：设置开始日期 ===== -->
 <div id="setupModal" class="modal hidden">
   <div class="modal-card">
-    <h2>🎒 欢迎来到暑假识字乐园！</h2>
-    <p>我们将在 <b>20 天</b>里学完二年级上册 <b>607 个生字</b>。<br>每天学新字 + 按记忆曲线复习旧字。</p>
-    <p>请选择开始学习的日期：</p>
+    <h2>🪖 欢迎加入三角洲行动·识字特训营！</h2>
+    <p>干员，我们将在 <b>20 天</b>里攻克二年级上册 <b>607 个生字</b>。<br>每天新训 + 按记忆曲线巩固旧字。</p>
+    <p>请设定你的入营日期：</p>
     <input type="date" id="startDateInput">
     <div class="modal-btns">
-      <button class="btn btn-primary" onclick="saveStartDate()">从今天开始 🚀</button>
+      <button class="btn btn-primary" onclick="saveStartDate()">入营报到 🪖</button>
     </div>
-    <p class="tip">📌 学习记录保存在本浏览器中，请每天在同一设备学习哦</p>
+    <p class="tip">📌 作战记录存于本机浏览器，请每天用同一设备训练哦</p>
   </div>
 </div>
 
 <!-- ===== 顶部导航 ===== -->
 <header>
-  <div class="logo" onclick="go('home')">🌈 暑假识字乐园</div>
+  <div class="logo" onclick="go('home')">🪖 三角洲识字特训营</div>
   <nav>
-    <button class="nav-btn" id="nav-home" onclick="go('home')">🏠 首页</button>
-    <button class="nav-btn" id="nav-study" onclick="go('study')">📖 今日学习</button>
-    <button class="nav-btn" id="nav-review" onclick="go('review')">🔁 今日复习</button>
-    <button class="nav-btn" id="nav-stats" onclick="go('stats')">📊 学习报告</button>
-    <button class="nav-btn" id="nav-sync" onclick="openSyncModal()">☁️ 同步</button>
+    <button class="nav-btn" id="nav-home" onclick="go('home')">🏠 基地</button>
+    <button class="nav-btn" id="nav-study" onclick="go('study')">🎯 今日特训</button>
+    <button class="nav-btn" id="nav-review" onclick="go('review')">🔄 战术复习</button>
+    <button class="nav-btn" id="nav-stats" onclick="go('stats')">📋 作战报告</button>
+    <button class="nav-btn" id="nav-sync" onclick="openSyncModal()">📡 同步</button>
   </nav>
 </header>
 
 <!-- ===== 跨终端同步弹窗 ===== -->
 <div id="syncModal" class="modal hidden">
   <div class="modal-card">
-    <h2>☁️ 跨终端同步</h2>
+    <h2>📡 跨终端同步</h2>
     <div id="syncBody"></div>
     <div class="modal-btns" style="margin-top:14px">
       <button class="btn btn-yellow" onclick="closeSyncModal()">关闭</button>
@@ -68,7 +68,7 @@
 <div id="celebrateModal" class="modal hidden">
   <div class="modal-card celebrate">
     <div id="celebrateContent"></div>
-    <button class="btn btn-primary" onclick="closeCelebrate()">太棒了！✨</button>
+    <button class="btn btn-primary" onclick="closeCelebrate()">收到！🫡</button>
   </div>
 </div>
 
