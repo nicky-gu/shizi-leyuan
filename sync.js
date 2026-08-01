@@ -1,7 +1,7 @@
 /* ===== 跨终端同步（Cloudflare Workers KV 存储）=====
    同步码即凭证，无需任何 token。
    浏览器 ←→ Worker API ←→ Cloudflare KV
-   同步码: SHIZI-XXXXXX → KV key: progress:SHIZI-XXXXXX */
+   同步码(用户自定义,如 XIAOMING-2019) → KV key: progress:XIAOMING-2019 */
 "use strict";
 
 /* 同步 API 与网站同源（Pages Functions），用相对路径即可 */
@@ -15,13 +15,6 @@ function loadSync() {
   catch (e) { return null; }
 }
 function saveSync() { localStorage.setItem(SYNC_LS_KEY, JSON.stringify(SYNC)); }
-
-function genSyncCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去掉易混淆 0/O 1/I
-  let code = "";
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return "SHIZI-" + code;
-}
 
 /* ---------- API 调用 ---------- */
 async function apiGet(code) {
@@ -84,13 +77,16 @@ function openSyncModal() {
     body.innerHTML = `
       <p>第一次使用同步：</p>
       <div class="modal-btns" style="display:flex;flex-direction:column;gap:10px">
-        <button class="btn btn-primary btn-big" onclick="createSync()">🆕 生成我的同步码</button>
-        <div style="color:#aaa">或</div>
-        <input id="joinCodeInput" placeholder="输入已有同步码 如 SHIZI-K7M2QX" maxlength="12"
+        <p style="font-weight:700">🆕 第一次用？自己起一个好记的同步码：</p>
+        <input id="createCodeInput" placeholder="如 XIAOMING-2019 或 MEIMEI-01" maxlength="20"
+          style="font-size:16px;padding:12px;border-radius:12px;border:2px solid #ddd;text-align:center;text-transform:uppercase">
+        <button class="btn btn-primary btn-big" onclick="createSync()">✅ 用这个同步码创建</button>
+        <div style="color:#aaa;margin:4px 0">———— 其他设备已有进度？————</div>
+        <input id="joinCodeInput" placeholder="输入已有的同步码" maxlength="20"
           style="font-size:16px;padding:12px;border-radius:12px;border:2px solid #ddd;text-align:center;text-transform:uppercase">
         <button class="btn btn-secondary" onclick="joinSync()">🔗 加入已有同步</button>
       </div>
-      <p class="tip">📌 同步码就是进度的钥匙，记好它（或拍照），别的设备输入即可同步</p>
+      <p class="tip">📌 同步码规则：4-20位，字母/数字/中划线，建议用「名字拼音+数字」好记<br>它是进度的钥匙，告诉孩子或拍照记下</p>
     `;
   }
 }
@@ -108,18 +104,34 @@ function unlinkSync() {
   }
 }
 
+/* 同步码统一校验：4-20位字母/数字/中划线 */
+function validCode(code) { return /^[A-Z0-9][A-Z0-9-]{2,18}[A-Z0-9]$/.test(code); }
+
 async function createSync() {
-  syncMsgCreate("生成中…");
+  const code = (document.getElementById("createCodeInput").value || "").trim().toUpperCase();
+  if (!validCode(code)) {
+    alert("同步码格式不对！\n\n要求：4-20位，只能用 字母/数字/中划线\n示例：XIAOMING-2019、MEIMEI-01");
+    return;
+  }
+  syncMsgCreate("检查中…");
   try {
-    const code = genSyncCode();
+    // 先检查是否已被别人占用
+    const check = await apiGet(code);
+    if (check.status === 200) {
+      alert(`同步码「${code}」已被使用了！\n\n如果这是你之前创建的，请用下方「加入已有同步」；\n如果不是，请换一个（比如后面加个数字）。`);
+      syncMsgCreate("✅ 用这个同步码创建");
+      return;
+    }
+    syncMsgCreate("创建中…");
     const r = await apiSave(code, S || {});
     if (r.status !== 200) throw new Error(r.body.error || ("HTTP " + r.status));
     SYNC = { code, lastSync: Date.now() };
     saveSync();
     openSyncModal();
-    syncMsg("✅ 同步码已生成并上传当前进度！", true);
+    syncMsg("✅ 同步码创建成功！别的设备输入它即可同步", true);
   } catch (e) {
-    alert("创建失败：" + e.message + "\n\n请检查 sync.js 顶部的 SYNC_API 地址是否已改成你的 Worker 地址");
+    alert("创建失败：" + e.message);
+    syncMsgCreate("✅ 用这个同步码创建");
   }
 }
 function syncMsgCreate(m) {
@@ -129,7 +141,7 @@ function syncMsgCreate(m) {
 
 async function joinSync() {
   const code = (document.getElementById("joinCodeInput").value || "").trim().toUpperCase();
-  if (!/^SHIZI-[A-Z0-9]{6}$/.test(code)) { alert("同步码格式不对，应为 SHIZI-XXXXXX"); return; }
+  if (!validCode(code)) { alert("同步码格式不对！\n\n4-20位，只能用 字母/数字/中划线"); return; }
   try {
     const r = await apiGet(code);
     if (r.status === 404) { alert("没找到这个同步码，请检查是否输入正确"); return; }
