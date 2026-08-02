@@ -180,7 +180,7 @@ const STUDY_MODES = [
   { id: "flash", icon: "🪪", name: "识别卡", desc: "逐一识别新字" },
   { id: "quiz", icon: "🔊", name: "听令选字", desc: "听读音，锁定汉字" },
   { id: "pinyin", icon: "🔤", name: "看字选读音", desc: "锁定正确读音" },
-  { id: "hunt", icon: "🎯", name: "目标锁定", desc: "在字海里锁定目标" },
+  { id: "hunt", icon: "🔗", name: "连连看", desc: "字与拼音配对连连看" },
 ];
 function renderStudy() {
   const el = document.getElementById("page-study");
@@ -318,7 +318,7 @@ function nextRound() {
   if (G.mode === "flash") area.innerHTML = head + flashHTML(ch);
   else if (G.mode === "quiz") area.innerHTML = head + quizHTML(ch);
   else if (G.mode === "pinyin") area.innerHTML = head + pinyinHTML(ch);
-  else if (G.mode === "hunt") area.innerHTML = head + huntHTML(ch);
+  else if (G.mode === "hunt") { area.innerHTML = huntHTML(); return; }
 }
 
 /* --- 模式1：识字卡片 --- */
@@ -376,35 +376,73 @@ function pinyinHTML(ch) {
   </div>`;
 }
 
-/* --- 模式4：火眼金睛找字 --- */
-function huntHTML(ch) {
-  const distractors = sample(DATA.chars.map(x => x.c), 11, ch);
-  const cells = shuffle([ch, ...distractors]);
+/* --- 模式4：连连看（字 ↔ 拼音配对） --- */
+const HUNT_BATCH = 6;
+function huntHTML() {
+  const batch = G.chars.slice(G.idx, G.idx + HUNT_BATCH);
+  const batchLen = batch.length;
+  G.hunt = { batchLen, done: new Set(), wrongMarked: new Set(), selChar: null, selPin: null, selCharEl: null, selPinEl: null };
+  const charsSide = shuffle(batch);
+  const pinsSide = shuffle(batch.map(c => CHAR_MAP[c].p));
+  const groupIdx = Math.floor(G.idx / HUNT_BATCH) + 1;
+  const groupTotal = Math.ceil(G.chars.length / HUNT_BATCH);
+  const head = `
+    <div class="game-head">
+      <button class="btn btn-yellow" onclick="quitGame()">← 返回</button>
+      <span class="streak">🎯 ${G.right} 命中 / ${G.wrong} 失误</span>
+      <span style="font-weight:800">第 ${groupIdx}/${groupTotal} 组</span>
+    </div>`;
   return `
+  ${head}
   <div class="card">
-    <div class="game-q">🎯 锁定这个字：<span style="color:var(--c-primary);font-size:44px">${ch}</span>
-      <button class="btn btn-secondary" onclick="speak('${ch}')">🔊</button>
-    </div>
-    <div class="hunt-grid">
-      ${cells.map(o => `<div class="hunt-cell" onclick="huntAnswer(this,'${o}','${ch}')">${o}</div>`).join("")}
+    <div class="game-q">🔗 连连看：点一个字，再点对应的拼音，连成一对！</div>
+    <div class="link-wrap">
+      <div class="link-col">
+        ${charsSide.map(c => `<div class="link-card" onclick="huntPickChar(this,'${c}')">${c}</div>`).join("")}
+      </div>
+      <div class="link-col">
+        ${pinsSide.map(p => `<div class="link-card pin" onclick="huntPickPin(this,'${p}')">${p}</div>`).join("")}
+      </div>
     </div>
     <div class="feedback" id="fb"></div>
   </div>`;
 }
-let huntLock = false;
-function huntAnswer(el, pick, right) {
-  if (huntLock) return;
-  if (pick === right) {
-    huntLock = true;
-    el.classList.add("hit");
-    markResult(right, true, G.kind); G.right++;
-    fb("锁定目标！🎯", true);
-    setTimeout(() => { huntLock = false; G.idx++; nextRound(); }, 700);
+function huntPickChar(el, ch) {
+  if (el.classList.contains("done")) return;
+  if (G.hunt.selPin) {
+    tryPair(ch, G.hunt.selPin, el, G.hunt.selPinEl);
   } else {
-    el.classList.add("miss");
-    markResult(right, false, G.kind); G.wrong++;
-    fb("目标不对，再锁定～", false);
-    setTimeout(() => el.classList.remove("miss"), 400);
+    if (G.hunt.selCharEl) G.hunt.selCharEl.classList.remove("sel");
+    G.hunt.selChar = ch; G.hunt.selCharEl = el; el.classList.add("sel");
+  }
+}
+function huntPickPin(el, p) {
+  if (el.classList.contains("done")) return;
+  if (G.hunt.selChar) {
+    tryPair(G.hunt.selChar, p, G.hunt.selCharEl, el);
+  } else {
+    if (G.hunt.selPinEl) G.hunt.selPinEl.classList.remove("sel");
+    G.hunt.selPin = p; G.hunt.selPinEl = el; el.classList.add("sel");
+  }
+}
+function tryPair(ch, p, charEl, pinEl) {
+  const info = CHAR_MAP[ch];
+  if (info.p === p) {
+    charEl.classList.add("done"); pinEl.classList.add("done");
+    charEl.classList.remove("sel"); pinEl.classList.remove("sel");
+    G.hunt.done.add(ch);
+    markResult(ch, true, G.kind); G.right++;
+    fb("配对成功！🔗", true);
+    G.hunt.selChar = G.hunt.selPin = G.hunt.selCharEl = G.hunt.selPinEl = null;
+    if (G.hunt.done.size >= G.hunt.batchLen) {
+      setTimeout(() => { G.idx += G.hunt.batchLen; nextRound(); }, 700);
+    }
+  } else {
+    if (!G.hunt.wrongMarked.has(ch)) { markResult(ch, false, G.kind); G.wrong++; G.hunt.wrongMarked.add(ch); }
+    fb("再想想～", false);
+    charEl.classList.add("miss"); pinEl.classList.add("miss");
+    setTimeout(() => { charEl.classList.remove("sel", "miss"); pinEl.classList.remove("sel", "miss"); }, 400);
+    G.hunt.selChar = G.hunt.selPin = G.hunt.selCharEl = G.hunt.selPinEl = null;
   }
 }
 
