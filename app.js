@@ -8,7 +8,16 @@ let S = loadState();
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem(LS_KEY));
-    if (s && s.startDate) return s;
+    if (s && s.startDate) {
+      // 一次性清理旧 bug 误存进 S.charStat 的非汉字 key(如拼音串)
+      // 历史 bug: pinyinHTML 把 info.p 当作 right 传给 answer(), 导致 S.charStat["guà"] 等被写入
+      if (s.charStat) {
+        Object.keys(s.charStat).forEach(k => {
+          if (!CHAR_MAP[k]) delete s.charStat[k];
+        });
+      }
+      return s;
+    }
   } catch (e) {}
   return null;
 }
@@ -346,7 +355,7 @@ function quizHTML(ch) {
       <button class="btn btn-secondary" onclick="speak('${ch}')">再听一遍 🔂</button>
     </div>
     <div class="options-grid">
-      ${shuffled.map(o => `<button class="opt-btn" onclick="answer(this,'${o}','${ch}')">${o}</button>`).join("")}
+      ${shuffled.map(o => `<button class="opt-btn" onclick="answer(this,'${o}','${ch}','${ch}')">${o}</button>`).join("")}
     </div>
     <div class="feedback" id="fb"></div>
   </div>`;
@@ -361,7 +370,7 @@ function pinyinHTML(ch) {
   <div class="card">
     <div class="game-q">这个字怎么读？<span class="big">${ch}</span></div>
     <div class="options-grid">
-      ${opts.map(o => `<button class="opt-btn pinyin-opt" onclick="answer(this,'${o}','${info.p}')">${o}</button>`).join("")}
+      ${opts.map(o => `<button class="opt-btn pinyin-opt" onclick="answer(this,'${o}','${info.p}','${ch}')">${o}</button>`).join("")}
     </div>
     <div class="feedback" id="fb"></div>
   </div>`;
@@ -401,22 +410,22 @@ function huntAnswer(el, pick, right) {
 
 /* --- 通用答题 --- */
 let ansLock = false;
-function answer(el, pick, right) {
+function answer(el, pick, right, ch) {
   if (ansLock) return;
   ansLock = true;
   const ok = pick === right;
   if (ok) {
     el.classList.add("correct");
-    markResult(right, true, G.kind); G.right++;
+    markResult(ch, true, G.kind); G.right++;
     fb("命中！🎯", true);
   } else {
     el.classList.add("wrong");
     document.querySelectorAll(".opt-btn").forEach(b => {
       if (b.textContent === right) b.classList.add("correct");
     });
-    markResult(right, false, G.kind); G.wrong++;
+    markResult(ch, false, G.kind); G.wrong++;
     fb(`正确答案是「${right}」`, false);
-    speak(right);
+    speak(ch);
   }
   setTimeout(() => { ansLock = false; G.idx++; nextRound(); }, ok ? 700 : 1400);
 }
