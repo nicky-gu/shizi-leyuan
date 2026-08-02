@@ -462,7 +462,7 @@ function answer(el, pick, right, ch) {
       if (b.textContent === right) b.classList.add("correct");
     });
     markResult(ch, false, G.kind); G.wrong++;
-    fb(`正确答案是「${right}」`, false);
+    fb(`正确答案：${ch}（${CHAR_MAP[ch].p}）`, false);
     speak(ch);
   }
   setTimeout(() => { ansLock = false; G.idx++; nextRound(); }, ok ? 700 : 1400);
