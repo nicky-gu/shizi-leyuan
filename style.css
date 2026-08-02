@@ -148,15 +148,18 @@ h2.sec-title { font-size: 26px; margin-bottom: 14px; }
 .feedback.bad { color: var(--c-primary); }
 .streak { background: var(--c-yellow); border-radius: 999px; padding: 6px 16px; font-weight: 800; }
 
-/* 找字游戏 */
-.hunt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 520px; margin: 0 auto; }
-.hunt-cell {
-  font-size: 36px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-  background: #fff; border-radius: 14px; border: 3px solid #eee; cursor: pointer; font-weight: 800;
-  transition: all .12s; box-shadow: 0 3px 0 rgba(0,0,0,0.06);
+/* 连连看 */
+.link-wrap { display: flex; gap: 20px; justify-content: center; max-width: 560px; margin: 8px auto 0; }
+.link-col { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 130px; }
+.link-card {
+  font-size: 34px; font-weight: 800; padding: 16px 8px; border: 3px solid #eee; border-radius: 14px;
+  text-align: center; cursor: pointer; background: #fff; user-select: none; transition: all .12s;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.06);
 }
-.hunt-cell.hit { background: var(--c-green); color: #fff; border-color: var(--c-green); }
-.hunt-cell.miss { animation: shake .3s; border-color: var(--c-primary); }
+.link-card.pin { font-size: 26px; color: #C75B39; }
+.link-card.sel { border-color: var(--c-primary); background: #fff7ef; transform: scale(1.04); }
+.link-card.done { background: var(--c-green); color: #fff; border-color: var(--c-green); cursor: default; transform: none; }
+.link-card.miss { animation: shake .3s; border-color: var(--c-primary); }
 
 /* ===== 复习页 ===== */
 .review-day-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8f8fc; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
