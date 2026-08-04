@@ -55,8 +55,8 @@ function saveStartDate() {
     study: {},
     // charStat: { "蝌": {firstDay:1, seen:[], wrong:0, right:0, reviews:{1:'right',2:'wrong'} } }
     charStat: {},
-    // reviewDone: { "2026-08-02": [1,2] }  某天完成了来自第几天的复习
-    reviewDone: {},
+    // reviewCompleted: { "1": [1,2], "3": [0] }  某学习日已完成哪些复习间隔(0=当日即时巩固)
+    reviewCompleted: {},
     studyDays: []  // 有学习行为的日期
   };
   save();
@@ -64,22 +64,59 @@ function saveStartDate() {
   render();
 }
 
+/* ---------- 旧数据迁移：reviewDone → reviewCompleted ---------- */
+if (S && S.reviewDone && !S.reviewCompleted) {
+  S.reviewCompleted = reviewDoneToCompleted(S.reviewDone);
+  delete S.reviewDone;
+  save();
+}
+
 /* ---------- 计划计算 ---------- */
 function currentDayNum() {
   const d = diffDays(S.startDate, todayStr()) + 1;
   return Math.max(1, Math.min(20, d));
 }
-// 今天应该复习哪些学习日的字（艾宾浩斯: 学后第1,2,4,7,15天）
+// 某学习日已完成过的复习间隔集合（0 = 当日即时巩固）
+function completedSet(fromDay) {
+  return new Set((S.reviewCompleted && S.reviewCompleted[fromDay]) || []);
+}
+// 旧版 reviewDone {日期:[fromDay]} → 新版 reviewCompleted {fromDay:[间隔]}
+function reviewDoneToCompleted(rd) {
+  const out = {};
+  for (const date in (rd || {})) {
+    const e = diffDays(S.startDate, date); // 该日期距开营的天数(=elapsed)
+    (rd[date] || []).forEach(fromDay => {
+      const iv = e - (fromDay - 1); // 当时距该学习日已过去几天 = 完成的间隔序号
+      if (iv >= 1) (out[fromDay] = out[fromDay] || []).push(iv);
+    });
+  }
+  return out;
+}
+// 今天（或某天）应该复习哪些学习日的字（艾宾浩斯: 学后第1,2,4,7,15天）
+// 返回 [{day, intervals:[待巩固的间隔序号], today:bool}]
+// 关键：漏掉的复习会一直"待巩固"直到真正做完（遗留补练），不会过期消失
 function todayReviewSources(dateStr) {
   const elapsed = diffDays(S.startDate, dateStr); // 0=开始日
-  const todayDay = elapsed + 1;
-  const sources = [];
-  for (let day = 1; day <= Math.min(todayDay - 1, 20); day++) {
+  const curDay = elapsed + 1;
+  const isToday = dateStr === todayStr();
+  const out = [];
+  for (let day = 1; day <= 20; day++) {
+    const chars = DAY_CHARS[day];
+    if (!chars || !chars.length) continue;
     const learnedElapsed = day - 1; // 学习日距开始日
     const since = elapsed - learnedElapsed; // 距学习过去几天
-    if (DATA.reviewIntervals.includes(since)) sources.push(day);
+    const done = completedSet(day);
+    // 今日新训：允许当天即时巩固一次（特殊间隔 0）
+    if (isToday && day === curDay) {
+      if (!done.has(0)) out.push({ day, intervals: [0], today: true });
+      continue;
+    }
+    if (since < 1) continue; // 还没学满一天
+    // 已到窗口、但还没完成的间隔 = 待巩固（含之前漏掉的，即"遗留"）
+    const pending = DATA.reviewIntervals.filter(iv => iv <= since && !done.has(iv));
+    if (pending.length) out.push({ day, intervals: pending, today: false });
   }
-  return sources;
+  return out;
 }
 function charStatInit(ch, day) {
   if (!S.charStat[ch]) S.charStat[ch] = { firstDay: day, wrong: 0, right: 0, reviews: {} };
@@ -135,8 +172,7 @@ function renderHome() {
   const day = currentDayNum();
   const elapsed = diffDays(S.startDate, todayStr());
   const todayDone = S.studyDays.includes(todayStr());
-  const reviewSources = todayReviewSources(todayStr());
-  const reviewDoneToday = S.reviewDone[todayStr()] || [];
+  const reviewItems = todayReviewSources(todayStr());
   const learnedCount = Object.keys(S.charStat).length;
   const totalRight = Object.values(S.charStat).reduce((a, b) => a + b.right, 0);
   const totalWrong = Object.values(S.charStat).reduce((a, b) => a + b.wrong, 0);
@@ -164,7 +200,7 @@ function renderHome() {
       <div class="home-tile tile-review" onclick="go('review')">
         <div class="icon">🔄</div>
         <h3>战术复习</h3>
-        <p>${reviewSources.length > 0 ? `${reviewSources.length} 组字进入复习窗口！（已完成 ${reviewDoneToday.length}/${reviewSources.length}）` : "暂无到期复习，去新训吧"}</p>
+        <p>${reviewItems.length > 0 ? `${reviewItems.length} 组字待巩固（含遗漏补练）！去复盘吧 ▶` : "暂无到期复习，去新训吧"}</p>
       </div>
       <div class="home-tile tile-stats" onclick="go('stats')">
         <div class="icon">📋</div>
@@ -217,32 +253,33 @@ function renderStudy() {
 function renderReview() {
   const el = document.getElementById("page-review");
   const t = todayStr();
-  const sources = todayReviewSources(t);
-  const done = S.reviewDone[t] || [];
+  const items = todayReviewSources(t);
 
   // 各来源中，错题优先
-  let rows = sources.map(day => {
-    const chars = DAY_CHARS[day] || [];
+  let rows = items.map(it => {
+    const chars = DAY_CHARS[it.day] || [];
     const wrongs = chars.filter(c => (S.charStat[c] || {}).wrong > 0);
-    return { day, total: chars.length, wrongs: wrongs.length, isDone: done.includes(day) };
+    return { day: it.day, intervals: it.intervals, today: it.today, total: chars.length, wrongs: wrongs.length };
   });
 
   el.innerHTML = `
     <div class="card">
       <h2 class="sec-title">🔄 今日战术复习</h2>
-      <p style="color:#888">根据<b>艾宾浩斯记忆曲线</b>，学过的字要在第 1、2、4、7、15 天巩固，才能牢牢记住！</p>
+      <p style="color:#888">根据<b>艾宾浩斯记忆曲线</b>，学过的字要在第 1、2、4、7、15 天巩固；<b>之前漏掉的会一直留在这里</b>，直到真正巩固完为止。</p>
       <div class="legend">
-        <span>🟣 到期复习</span><span>🔴 含未掌握（优先练）</span><span>✅ 已完成</span>
+        <span>🟣 待巩固</span><span>🔴 含未掌握（优先练）</span><span>🔆 今日即时巩固</span>
       </div>
-      ${rows.length === 0 ? `<div class="empty-state"><div class="icon">🎖️</div><p>今天没有到期的复习内容！<br>去新训，或者加练一下未掌握的字吧～</p></div>` : ""}
+      ${rows.length === 0 ? `<div class="empty-state"><div class="icon">🎖️</div><p>今天没有待巩固的内容！<br>去新训，或者加练一下未掌握的字吧～</p></div>` : ""}
       ${rows.map(r => `
-        <div class="review-day-row ${r.isDone ? "done" : ""}">
+        <div class="review-day-row">
           <div class="info">
             第 ${r.day} 天新训的 ${r.total} 个字
-            <span class="tag">待巩固</span>
+            ${r.today
+              ? `<span class="tag">今日即时巩固</span>`
+              : `<span class="tag">待巩固（第 ${r.intervals.join("、")} 次）</span>`}
             ${r.wrongs > 0 ? `<span class="tag wrong-tag">含 ${r.wrongs} 个未掌握</span>` : ""}
           </div>
-          ${r.isDone ? "<span style='font-size:22px'>✅</span>" : `<button class="btn btn-secondary" onclick="startReview(${r.day})">开始巩固 ▶</button>`}
+          <button class="btn btn-secondary" onclick="startReview(${r.day})">开始巩固 ▶</button>
         </div>`).join("")}
     </div>
     ${weakChars().length > 0 ? `
@@ -264,7 +301,7 @@ function futureSchedule() {
   for (let i = 1; i <= 5; i++) {
     const d = addDays(todayStr(), i);
     const src = todayReviewSources(d);
-    if (src.length > 0) html += `<div class="review-day-row"><div class="info">${d}：复习第 ${src.join("、")} 天的字</div></div>`;
+    if (src.length > 0) html += `<div class="review-day-row"><div class="info">${d}：复习第 ${src.map(x => x.day).join("、")} 天的字</div></div>`;
   }
   return html || `<p style="color:#aaa">未来 5 天暂无到期复习</p>`;
 }
@@ -495,9 +532,16 @@ function startReview(fromDay) {
   const modes = ["quiz", "pinyin", "hunt"];
   const mode = modes[Math.floor(Math.random() * modes.length)];
   startGame("review", mode, ordered, () => {
-    const t = todayStr();
-    if (!S.reviewDone[t]) S.reviewDone[t] = [];
-    if (!S.reviewDone[t].includes(fromDay)) S.reviewDone[t].push(fromDay);
+    if (!S.reviewCompleted) S.reviewCompleted = {};
+    const done = new Set(S.reviewCompleted[fromDay] || []);
+    if (fromDay === currentDayNum()) {
+      done.add(0); // 当日即时巩固
+    } else {
+      // 一次巩固覆盖"已到窗口"的所有间隔（含之前漏掉的遗留）
+      const elapsed = diffDays(S.startDate, todayStr());
+      DATA.reviewIntervals.forEach(iv => { if (iv <= elapsed) done.add(iv); });
+    }
+    S.reviewCompleted[fromDay] = [...done];
     save();
   });
 }

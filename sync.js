@@ -41,9 +41,13 @@ function mergeProgress(remote) {
     if (!S.study[d]) S.study[d] = {};
     Object.assign(S.study[d], remote.study[d]);
   }
-  for (const d in (remote.reviewDone || {})) {
-    if (!S.reviewDone[d]) S.reviewDone[d] = [];
-    S.reviewDone[d] = [...new Set([...S.reviewDone[d], ...remote.reviewDone[d]])];
+  // 复习完成记录（按学习日+间隔），取并集
+  if (!S.reviewCompleted) S.reviewCompleted = {};
+  const remoteCompleted = remote.reviewCompleted || reviewDoneToCompleted(remote.reviewDone);
+  for (const d in remoteCompleted) {
+    const a = new Set(S.reviewCompleted[d] || []);
+    (remoteCompleted[d] || []).forEach(iv => a.add(iv));
+    S.reviewCompleted[d] = [...a];
   }
   S.studyDays = [...new Set([...(S.studyDays || []), ...(remote.studyDays || [])])];
   for (const ch in (remote.charStat || {})) {
@@ -206,6 +210,12 @@ async function silentPull() {
   try {
     const r = await apiGet(SYNC.code);
     if (r.status === 200) {
+      // 本地与云端完全一致 → 完全静默：不合并、不写盘、不重渲染、不打扰用户
+      if (JSON.stringify(S) === JSON.stringify(r.body)) {
+        SYNC.lastSync = Date.now(); saveSync();
+        _syncing = false;
+        return;
+      }
       const before = JSON.stringify(S);
       mergeProgress(r.body);
       // 只有远程有新内容才刷新界面
