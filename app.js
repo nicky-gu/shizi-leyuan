@@ -1,6 +1,14 @@
 /* ===== 三角洲识字特训营 核心逻辑 ===== */
 "use strict";
 
+/* ---------- 数据索引（必须在 loadState 之前初始化，因为 loadState 引用 CHAR_MAP） ---------- */
+const CHAR_MAP = {};
+DATA.chars.forEach(x => CHAR_MAP[x.c] = x);
+const ALL_CHARS = DATA.chars.map(x => x.c);  // 预建全字数组，避免重复创建
+const ALL_PINYIN = [...new Set(DATA.chars.map(x => x.p))];  // 去重后的全拼音列表
+const DAY_CHARS = {}; // day -> [char]
+DATA.plan.forEach(p => DAY_CHARS[p.day] = p.chars);
+
 /* ---------- 存储 ---------- */
 const LS_KEY = "shizi_progress_v1";
 let S = loadState();
@@ -35,14 +43,6 @@ function addDays(dateStr, n) {
 function diffDays(a, b) { // b - a 天数
   return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
 }
-
-/* ---------- 数据索引 ---------- */
-const CHAR_MAP = {};
-DATA.chars.forEach(x => CHAR_MAP[x.c] = x);
-const ALL_CHARS = DATA.chars.map(x => x.c);  // 预建全字数组，避免重复创建
-const ALL_PINYIN = [...new Set(DATA.chars.map(x => x.p))];  // 去重后的全拼音列表
-const DAY_CHARS = {}; // day -> [char]
-DATA.plan.forEach(p => DAY_CHARS[p.day] = p.chars);
 
 /* ---------- 首次设置 ---------- */
 if (!S) {
