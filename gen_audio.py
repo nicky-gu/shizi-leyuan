@@ -4,7 +4,7 @@
 # 文件名按字符 Unicode codepoint 十六进制：assets/audio/u{code:x}.mp3
 import asyncio, edge_tts, os, re, sys, subprocess, imageio_ffmpeg
 
-ROOT = r"C:\Users\Nicky Gu\WorkBuddy\Claw\shizi"
+ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(ROOT, "data.js")
 OUT = os.path.join(ROOT, "assets", "audio")
 VOICE = "zh-CN-XiaoxiaoNeural"

@@ -112,7 +112,7 @@ out = {
 with open("data.js", "w", encoding="utf-8") as f:
     f.write("// 二年级上册生字数据（自动生成）\n")
     f.write("const DATA = ")
-    f.write(json.dumps(out, ensure_ascii=False, indent=1))
+    f.write(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     f.write(";\n")
 
 print("已生成 data.js，每天约", per_day, "字")

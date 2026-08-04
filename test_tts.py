@@ -1,7 +1,7 @@
 # 验证：用 edge-tts + SSML <phoneme> 强制按指定拼音生成发音，跨端一致
 import asyncio, edge_tts, os
 
-OUT = r"C:\Users\Nicky Gu\WorkBuddy\Claw\shizi\audio_test"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio_test")
 os.makedirs(OUT, exist_ok=True)
 
 # 把带调拼音（háng）转成数字声调（hang2），供 phoneme 使用

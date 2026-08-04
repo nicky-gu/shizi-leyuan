@@ -39,6 +39,8 @@ function diffDays(a, b) { // b - a 天数
 /* ---------- 数据索引 ---------- */
 const CHAR_MAP = {};
 DATA.chars.forEach(x => CHAR_MAP[x.c] = x);
+const ALL_CHARS = DATA.chars.map(x => x.c);  // 预建全字数组，避免重复创建
+const ALL_PINYIN = [...new Set(DATA.chars.map(x => x.p))];  // 去重后的全拼音列表
 const DAY_CHARS = {}; // day -> [char]
 DATA.plan.forEach(p => DAY_CHARS[p.day] = p.chars);
 
@@ -145,6 +147,8 @@ function render() { go("home"); }
 
 /* ---------- 发音 ---------- */
 // 优先播放预生成的高质量音频（跨端一致、拼音/声调准确）；缺失或失败再回退浏览器 TTS
+// escapeApos: 防御性地转义单引号，防止数据中的特殊字符破坏 onclick 内联事件
+function escapeApos(s) { return String(s).replace(/'/g, "\\'"); }
 function speak(text) {
   if (text && text.length === 1) {
     const fn = "assets/audio/u" + text.codePointAt(0).toString(16) + ".mp3";
@@ -233,7 +237,7 @@ function renderStudy() {
     </div>
     <div class="card">
       <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
-        ${chars.map(c => `<span style="font-size:26px;font-weight:800;background:#f6f6fb;border-radius:10px;padding:6px 10px;cursor:pointer" onclick="speak('${c}')" title="${CHAR_MAP[c].p} · ${CHAR_MAP[c].l}">${c}</span>`).join("")}
+        ${chars.map(c => `<span style="font-size:26px;font-weight:800;background:#f6f6fb;border-radius:10px;padding:6px 10px;cursor:pointer" onclick="speak('${escapeApos(c)}')" title="${CHAR_MAP[c].p} · ${CHAR_MAP[c].l}">${c}</span>`).join("")}
       </div>
       <p style="text-align:center;color:#aaa;margin-top:8px;font-size:14px">点字可以听读音 🔊</p>
     </div>
@@ -346,6 +350,8 @@ function nextRound() {
   if (G.idx >= G.chars.length) return finishGame();
   const ch = G.chars[G.idx];
   const area = document.getElementById("gameArea");
+  // 先清空，确保上一题的 correct/wrong/动画状态不会残留到下一题
+  area.innerHTML = "";
   const head = `
     <div class="game-head">
       <button class="btn btn-yellow" onclick="quitGame()">← 返回</button>
@@ -363,7 +369,7 @@ function flashHTML(ch) {
   const info = CHAR_MAP[ch];
   return `
   <div class="card flash-stage">
-    <div class="flash-char" onclick="speak('${ch}')">
+    <div class="flash-char" onclick="speak('${escapeApos(ch)}')">
       <div class="flash-pinyin">${info.p}</div>
       <div>${ch}</div>
       <div class="flash-meta">${info.u} · ${info.l} · 点我听读音 🔊</div>
@@ -383,16 +389,17 @@ function flashAnswer(know) {
 
 /* --- 模式2：听音选字 --- */
 function quizHTML(ch) {
-  const opts = [ch, ...sample(G.kind === "study" ? G.chars : DATA.chars.map(x => x.c), 3, ch)];
+  const pool = G.kind === "study" ? G.chars : ALL_CHARS;
+  const opts = [ch, ...sample(pool, 3, ch)];
   const shuffled = shuffle(opts);
   setTimeout(() => speak(ch), 300);
   return `
   <div class="card">
     <div class="game-q">🔊 听指令，锁定你听到的字
-      <button class="btn btn-secondary" onclick="speak('${ch}')">再听一遍 🔂</button>
+      <button class="btn btn-secondary" onclick="speak('${escapeApos(ch)}')">再听一遍 🔂</button>
     </div>
     <div class="options-grid">
-      ${shuffled.map(o => `<button class="opt-btn" onclick="answer(this,'${o}','${ch}','${ch}')">${o}</button>`).join("")}
+      ${shuffled.map(o => `<button class="opt-btn" data-pick="${o}" data-right="${ch}" data-char="${ch}" onclick="answer(this,'${o}','${ch}','${ch}')">${o}</button>`).join("")}
     </div>
     <div class="feedback" id="fb"></div>
   </div>`;
@@ -401,13 +408,14 @@ function quizHTML(ch) {
 /* --- 模式3：看字选拼音 --- */
 function pinyinHTML(ch) {
   const info = CHAR_MAP[ch];
-  const others = sample(DATA.chars.map(x => x.c), 3, ch).map(c => CHAR_MAP[c].p);
+  // 从去重拼音列表中抽取干扰项，确保不重复
+  const others = sample(ALL_PINYIN, 3, info.p);
   const opts = shuffle([info.p, ...others]);
   return `
   <div class="card">
     <div class="game-q">这个字怎么读？<span class="big">${ch}</span></div>
     <div class="options-grid">
-      ${opts.map(o => `<button class="opt-btn pinyin-opt" onclick="answer(this,'${o}','${info.p}','${ch}')">${o}</button>`).join("")}
+      ${opts.map(o => `<button class="opt-btn pinyin-opt" data-pick="${o}" data-right="${info.p}" data-char="${ch}" onclick="answer(this,'${o}','${info.p}','${ch}')">${o}</button>`).join("")}
     </div>
     <div class="feedback" id="fb"></div>
   </div>`;
@@ -435,10 +443,10 @@ function huntHTML() {
     <div class="game-q">🔗 连连看：点一个字，再点对应的拼音，连成一对！</div>
     <div class="link-wrap">
       <div class="link-col">
-        ${charsSide.map(c => `<div class="link-card" onclick="huntPickChar(this,'${c}')">${c}</div>`).join("")}
+        ${charsSide.map(c => `<div class="link-card" onclick="huntPickChar(this,'${escapeApos(c)}')">${c}</div>`).join("")}
       </div>
       <div class="link-col">
-        ${pinsSide.map(p => `<div class="link-card pin" onclick="huntPickPin(this,'${p}')">${p}</div>`).join("")}
+        ${pinsSide.map(p => `<div class="link-card pin" onclick="huntPickPin(this,'${escapeApos(p)}')">${p}</div>`).join("")}
       </div>
     </div>
     <div class="feedback" id="fb"></div>
@@ -468,6 +476,13 @@ function tryPair(ch, p, charEl, pinEl) {
     charEl.classList.add("done"); pinEl.classList.add("done");
     charEl.classList.remove("sel"); pinEl.classList.remove("sel");
     G.hunt.done.add(ch);
+    // 如果该字之前配错被记过 wrong，撤回那条错误记录
+    if (G.hunt.wrongMarked.has(ch)) {
+      const st = S.charStat[ch];
+      if (st && st.wrong > 0) st.wrong--;
+      G.wrong = Math.max(0, G.wrong - 1);
+      G.hunt.wrongMarked.delete(ch);
+    }
     markResult(ch, true, G.kind); G.right++;
     fb("配对成功！🔗", true);
     G.hunt.selChar = G.hunt.selPin = G.hunt.selCharEl = G.hunt.selPinEl = null;
@@ -496,7 +511,7 @@ function answer(el, pick, right, ch) {
   } else {
     el.classList.add("wrong");
     document.querySelectorAll(".opt-btn").forEach(b => {
-      if (b.textContent === right) b.classList.add("correct");
+      if (b.dataset.right === right) b.classList.add("correct");
     });
     markResult(ch, false, G.kind); G.wrong++;
     fb(`正确答案：${ch}（${CHAR_MAP[ch].p}）`, false);
@@ -623,7 +638,7 @@ function renderStats() {
     <div class="card">
       <h2 class="sec-title">😅 容易失误的字（点多加练）</h2>
       <div class="weak-chars">
-        ${weak.map(c => `<div class="weak-char" onclick="speak('${c}')" title="${CHAR_MAP[c].p}">${c}</div>`).join("")}
+        ${weak.map(c => `<div class="weak-char" onclick="speak('${escapeApos(c)}')" title="${CHAR_MAP[c].p}">${c}</div>`).join("")}
       </div>
     </div>` : `
     <div class="card empty-state"><div class="icon">🏆</div><p>太强了！目前零失误！</p></div>`}
