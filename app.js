@@ -508,6 +508,7 @@ function answer(el, pick, right, ch) {
     el.classList.add("correct");
     markResult(ch, true, G.kind); G.right++;
     fb("命中！🎯", true);
+    speak(ch);  // 选对时播报正确读音
   } else {
     el.classList.add("wrong");
     document.querySelectorAll(".opt-btn").forEach(b => {
@@ -517,7 +518,7 @@ function answer(el, pick, right, ch) {
     fb(`正确答案：${ch}（${CHAR_MAP[ch].p}）`, false);
     speak(ch);
   }
-  setTimeout(() => { ansLock = false; G.idx++; nextRound(); }, ok ? 700 : 1400);
+  setTimeout(() => { ansLock = false; G.idx++; nextRound(); }, ok ? 1200 : 1400);
 }
 function fb(msg, good) {
   const f = document.getElementById("fb");
