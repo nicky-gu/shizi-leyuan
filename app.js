@@ -511,7 +511,7 @@ function answer(el, pick, right, ch) {
   } else {
     el.classList.add("wrong");
     document.querySelectorAll(".opt-btn").forEach(b => {
-      if (b.dataset.right === right) b.classList.add("correct");
+      if (b.dataset.pick === right) b.classList.add("correct");
     });
     markResult(ch, false, G.kind); G.wrong++;
     fb(`正确答案：${ch}（${CHAR_MAP[ch].p}）`, false);
